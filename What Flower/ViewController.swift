@@ -53,7 +53,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
                 fatalError("Model failed to process image")
             }
             let classification = results.first?.identifier
-            self.title = classification
+            self.title = classification?.capitalized
         }
         
         let handler = VNImageRequestHandler(ciImage: image)
