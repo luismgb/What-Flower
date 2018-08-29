@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Vision
 
 class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
 
@@ -26,6 +27,12 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
         if let userPickedImage = info[UIImagePickerControllerOriginalImage] as? UIImage {
             pickedImageView.image = userPickedImage
+            
+            guard let ciUserPickedImage = CIImage(image: userPickedImage) else {
+                fatalError("Error converting userPickedImage into a CIImage")
+            }
+            
+            detect(image: ciUserPickedImage)
         }
         imagePicker.dismiss(animated: true, completion: nil)
     }
@@ -34,6 +41,27 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         imagePicker.delegate = self
         imagePicker.allowsEditing = false
         imagePicker.sourceType = .camera
+    }
+    
+    func detect(image: CIImage) {
+        guard let flowerClassifierModel = try? VNCoreMLModel(for: FlowerClassifier().model) else {
+            fatalError("Error loading CoreML model")
+        }
+        
+        let request = VNCoreMLRequest(model: flowerClassifierModel) { (request, error) in
+            guard let results = request.results as? [VNClassificationObservation] else {
+                fatalError("Model failed to process image")
+            }
+            self.title = results.first?.identifier
+        }
+        
+        let handler = VNImageRequestHandler(ciImage: image)
+        
+        do {
+            try handler.perform([request])
+        } catch {
+            print(error)
+        }
     }
     
 }
