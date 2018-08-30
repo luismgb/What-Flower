@@ -8,21 +8,37 @@
 
 import UIKit
 import Vision
+import Alamofire
+import SwiftyJSON
 
 class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
 
+    // MARK: - API Constants
+    
+    let wikipediaAPIUrl = "https://en.wikipedia.org/w/api.php"
+    
+    // MARK: - Other Properties
+    
     let imagePicker = UIImagePickerController()
     
+    // MARK: - IBOutlets
+    
     @IBOutlet weak var pickedImageView: UIImageView!
+    
+    // MARK: - Lifecycle Methods
     
     override func viewDidLoad() {
         super.viewDidLoad()
         setupImagePicker()
     }
     
+    // MARK: - IBActions
+    
     @IBAction func takePicture(_ sender: UIBarButtonItem) {
         present(imagePicker, animated: true, completion: nil)
     }
+    
+    // MARK: - Image Picker Methods
     
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
         if let userPickedImage = info[UIImagePickerControllerOriginalImage] as? UIImage {
@@ -43,6 +59,8 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         imagePicker.sourceType = .camera
     }
     
+    // MARK: - MLModel Methods
+    
     func detect(image: CIImage) {
         guard let flowerClassifierModel = try? VNCoreMLModel(for: FlowerClassifier().model) else {
             fatalError("Error loading CoreML model")
@@ -52,8 +70,10 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
             guard let results = request.results as? [VNClassificationObservation] else {
                 fatalError("Model failed to process image")
             }
-            let classification = results.first?.identifier
-            self.title = classification?.capitalized
+            if let classification = results.first?.identifier {
+                self.title = classification.capitalized
+                self.getWikipediaData(flowerName: classification)
+            }
         }
         
         let handler = VNImageRequestHandler(ciImage: image)
@@ -64,6 +84,33 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
             print(error)
         }
     }
+    
+    // MARK: Networking
+    
+    func getWikipediaData(flowerName: String) {
+        
+        let requestParameters = ["format": "json",
+                                 "action": "query",
+                                 "prop": "extracts",
+                                 "exintro": "",
+                                 "explaintext" : "",
+                                 "titles": flowerName,
+                                 "indexpageids": "",
+                                 "redirects": "1"]
+        
+        Alamofire.request(wikipediaAPIUrl, method: .get, parameters: requestParameters).responseJSON { (response) in
+            if response.result.isSuccess {
+                print("Success! Got the wikipedia data")
+                let wikipediaJSON: JSON = JSON(response.result.value!)
+                print(wikipediaJSON)
+            } else {
+                print("\nERROR: \(response.result.error ?? "retrieving data from servers" as! Error)")
+            }
+        }
+        
+    }
+    
+    
     
 }
 
