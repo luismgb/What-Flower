@@ -24,6 +24,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     // MARK: - IBOutlets
     
     @IBOutlet weak var pickedImageView: UIImageView!
+    @IBOutlet weak var flowerDescriptionLabel: UILabel!
     
     // MARK: - Lifecycle Methods
     
@@ -85,7 +86,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         }
     }
     
-    // MARK: Networking
+    // MARK: - Networking
     
     func getWikipediaData(flowerName: String) {
         
@@ -102,15 +103,21 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
             if response.result.isSuccess {
                 print("Success! Got the wikipedia data")
                 let wikipediaJSON: JSON = JSON(response.result.value!)
-                print(wikipediaJSON)
+                self.updateFlowerData(json: wikipediaJSON)
             } else {
                 print("\nERROR: \(response.result.error ?? "retrieving data from servers" as! Error)")
             }
         }
-        
+
     }
     
+    // MARK: - JSON Parsing
     
+    func updateFlowerData(json: JSON) {
+        let pageID = json["query"]["pageids"][0].stringValue
+        let flowerDesctiption = json["query"]["pages"][pageID]["extract"].stringValue
+        flowerDescriptionLabel.text = flowerDesctiption
+    }
     
 }
 
