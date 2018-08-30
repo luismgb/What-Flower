@@ -14,11 +14,11 @@ Take a picture of a flower and detect type of flower using CoreML. After taking 
 
 ## Features
 
--Take picture of flower using the device camera
+-Take picture of a flower using the device camera
 
--Use the Oxford 102 model to detect type of flower from the picture
+-The app uses the Oxford 102 model to detect type of flower from the picture
 
--Display thumbnail and description of the detected flower using the Wikipedia API
+-After detecting the type of flower, it displays its thumbnail and description using the Wikipedia API
 
 ## Credits
 
