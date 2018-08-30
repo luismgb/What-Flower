@@ -111,7 +111,7 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
 
     }
     
-    // MARK: - JSON Parsing
+    // MARK: - Update UI
     
     func updateFlowerData(json: JSON) {
         let pageID = json["query"]["pageids"][0].stringValue
