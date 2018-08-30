@@ -10,6 +10,7 @@ import UIKit
 import Vision
 import Alamofire
 import SwiftyJSON
+import SDWebImage
 
 class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavigationControllerDelegate {
 
@@ -43,8 +44,6 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     
     func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
         if let userPickedImage = info[UIImagePickerControllerOriginalImage] as? UIImage {
-            pickedImageView.image = userPickedImage
-            
             guard let ciUserPickedImage = CIImage(image: userPickedImage) else {
                 fatalError("Error converting userPickedImage into a CIImage")
             }
@@ -92,12 +91,13 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
         
         let requestParameters = ["format": "json",
                                  "action": "query",
-                                 "prop": "extracts",
+                                 "prop": "extracts|pageimages",
                                  "exintro": "",
                                  "explaintext" : "",
                                  "titles": flowerName,
                                  "indexpageids": "",
-                                 "redirects": "1"]
+                                 "redirects": "1",
+                                 "pithumbsize": "500"]
         
         Alamofire.request(wikipediaAPIUrl, method: .get, parameters: requestParameters).responseJSON { (response) in
             if response.result.isSuccess {
@@ -116,6 +116,8 @@ class ViewController: UIViewController, UIImagePickerControllerDelegate, UINavig
     func updateFlowerData(json: JSON) {
         let pageID = json["query"]["pageids"][0].stringValue
         let flowerDesctiption = json["query"]["pages"][pageID]["extract"].stringValue
+        let flowerImageURL = URL(string: json["query"]["pages"][pageID]["thumbnail"]["source"].stringValue)
+        pickedImageView.sd_setImage(with: flowerImageURL)
         flowerDescriptionLabel.text = flowerDesctiption
     }
     
